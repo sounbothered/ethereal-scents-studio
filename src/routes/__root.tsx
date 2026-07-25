@@ -83,12 +83,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "ÆTHEL is a maison of rare fragrances, hand-poured in Grasse. Olfactory narratives crafted for those who wear scent as language.",
+          "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse.",
       },
       { name: "theme-color", content: "#141420" },
       { property: "og:site_name", content: "ÆTHEL" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "ÆTHEL — Rare Fragrances, Hand-Poured in Grasse" },
+      { name: "twitter:title", content: "ÆTHEL — Rare Fragrances, Hand-Poured in Grasse" },
+      { property: "og:description", content: "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse." },
+      { name: "twitter:description", content: "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/82fbfe3e-4f40-40a7-9c98-63bc9be71bde" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/82fbfe3e-4f40-40a7-9c98-63bc9be71bde" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

@@ -23,11 +23,11 @@ export const Route = createFileRoute("/")({
         content:
           "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse.",
       },
-      { property: "og:title", content: "ÆTHEL — Rare Fragrances" },
+      { property: "og:title", content: "ÆTHEL — Rare Fragrances, Hand-Poured in Grasse" },
       {
         property: "og:description",
         content:
-          "Hand-poured olfactory narratives designed to linger in the space between memory and moment.",
+          "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
