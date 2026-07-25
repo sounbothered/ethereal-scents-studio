@@ -210,7 +210,10 @@ function ProductPage() {
           </div>
         </div>
 
+        <ScentPyramid product={product} />
+
         <ReviewsSection productId={product.id} reviews={reviews} userId={userId} />
+
       </div>
     </AppShell>
   );
