@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useServerFn } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getMyOrders } from "@/lib/orders.functions";
 import { formatPrice } from "@/lib/cart";
