@@ -102,6 +102,7 @@ export type Database = {
         Row: {
           active: boolean
           base_notes: string[] | null
+          collection: string
           concentration: string | null
           created_at: string
           currency: string
@@ -113,7 +114,9 @@ export type Database = {
           longevity: number | null
           name: string
           notes: string | null
+          origin: string | null
           price_cents: number
+          price_ngn: number | null
           sillage: number | null
           slug: string
           sort: number
@@ -125,6 +128,7 @@ export type Database = {
         Insert: {
           active?: boolean
           base_notes?: string[] | null
+          collection?: string
           concentration?: string | null
           created_at?: string
           currency?: string
@@ -136,7 +140,9 @@ export type Database = {
           longevity?: number | null
           name: string
           notes?: string | null
+          origin?: string | null
           price_cents: number
+          price_ngn?: number | null
           sillage?: number | null
           slug: string
           sort?: number
@@ -148,6 +154,7 @@ export type Database = {
         Update: {
           active?: boolean
           base_notes?: string[] | null
+          collection?: string
           concentration?: string | null
           created_at?: string
           currency?: string
@@ -159,7 +166,9 @@ export type Database = {
           longevity?: number | null
           name?: string
           notes?: string | null
+          origin?: string | null
           price_cents?: number
+          price_ngn?: number | null
           sillage?: number | null
           slug?: string
           sort?: number

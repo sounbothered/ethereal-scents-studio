@@ -9,7 +9,7 @@ import {
   deleteMyReview,
   getMyReviewForProduct,
 } from "@/lib/reviews.functions";
-import { useCart, formatPrice } from "@/lib/cart";
+import { useCart, formatPrice, formatDualPrice } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { imageForSlug } from "@/lib/product-images";
@@ -193,20 +193,35 @@ function ProductPage() {
               {product.description}
             </p>
 
-            <div className="mt-8 flex items-baseline gap-6">
-              <span className="font-serif text-4xl">
-                {formatPrice(product.price_cents, product.currency)}
-              </span>
-              <button
-                onClick={() => {
-                  add(product.id, 1);
-                  toast.success(`${product.name} added to your bag`);
-                }}
-                className="rounded-full bg-gold px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground transition-transform hover:scale-[1.02]"
-              >
-                Add to bag
-              </button>
-            </div>
+            {(() => {
+              const dual = formatDualPrice(product);
+              return (
+                <div className="mt-8 flex items-baseline gap-6">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-serif text-4xl">{dual.primary}</span>
+                    {dual.secondary && (
+                      <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                        {dual.secondary}
+                      </span>
+                    )}
+                  </div>
+                  {product.origin && (
+                    <span className="rounded-full border border-gold/40 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-gold">
+                      Origin · {product.origin}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      add(product.id, 1);
+                      toast.success(`${product.name} added to your bag`);
+                    }}
+                    className="rounded-full bg-gold px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground transition-transform hover:scale-[1.02]"
+                  >
+                    Add to bag
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

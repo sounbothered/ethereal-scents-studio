@@ -9,6 +9,12 @@ const bySlug: Record<string, string> = {
   "velvet-hour": p2,
   "golden-veil": p3,
   "midnight-tide": p4,
+  "ludex-oud-noir": p2,
+  "xtacy-amber-rouge": p3,
+  "skywalk-signature": p1,
+  "ace-intense": p4,
+  "essenza-lagos-nights": p3,
+  "regal-oud": p2,
 };
 
 export function imageForSlug(slug: string, fallback = heroImg): string {
