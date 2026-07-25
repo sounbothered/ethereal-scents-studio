@@ -120,7 +120,7 @@ function Home() {
             {userEmail ? (
               <button
                 onClick={handleSignOut}
-                className="hidden sm:inline-block text-muted-foreground hover:text-gold transition-colors"
+                className="inline-block text-muted-foreground hover:text-gold transition-colors"
                 title={userEmail}
               >
                 Sign out
@@ -128,7 +128,7 @@ function Home() {
             ) : (
               <Link
                 to="/auth"
-                className="hidden sm:inline-block text-muted-foreground hover:text-gold transition-colors"
+                className="inline-block text-muted-foreground hover:text-gold transition-colors"
               >
                 Sign in
               </Link>
