@@ -37,7 +37,7 @@ export const Route = createFileRoute("/product/$slug")({
     await context.queryClient.ensureQueryData(reviewsQO(product.id));
     return { product };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
         meta: [
@@ -48,6 +48,7 @@ export const Route = createFileRoute("/product/$slug")({
     }
     const p = loaderData.product;
     const desc = p.description ?? `${p.notes ?? ""} — a fragrance by ÆTHEL.`;
+    const url = `/product/${params.slug}`;
     return {
       meta: [
         { title: `${p.name} · ÆTHEL` },
@@ -55,6 +56,7 @@ export const Route = createFileRoute("/product/$slug")({
         { property: "og:title", content: `${p.name} · ÆTHEL` },
         { property: "og:description", content: desc },
         { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
         ...(p.image_url
           ? [
@@ -62,6 +64,27 @@ export const Route = createFileRoute("/product/$slug")({
               { name: "twitter:image", content: p.image_url },
             ]
           : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.name,
+            description: desc,
+            brand: { "@type": "Brand", name: "ÆTHEL" },
+            ...(p.image_url ? { image: p.image_url } : {}),
+            offers: {
+              "@type": "Offer",
+              price: (p.price_cents / 100).toFixed(2),
+              priceCurrency: p.currency || "EUR",
+              availability: "https://schema.org/InStock",
+              url,
+            },
+          }),
+        },
       ],
     };
   },
