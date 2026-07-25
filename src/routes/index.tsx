@@ -83,9 +83,12 @@ function Home() {
     toast.success("Signed out");
   };
 
-  const aethel = products.filter((p) => p.collection !== "nigerian-houses");
   const nigerian = products.filter((p) => p.collection === "nigerian-houses");
-  const hero = aethel[0] ?? products[0];
+  const clubDeNuit = products.filter((p) => p.collection === "club-de-nuit");
+  const aethel = products.filter(
+    (p) => p.collection !== "nigerian-houses" && p.collection !== "club-de-nuit",
+  );
+  const hero = nigerian[0] ?? clubDeNuit[0] ?? aethel[0] ?? products[0];
   const collection = aethel;
 
   const onHeroMove = (e: React.MouseEvent | React.TouchEvent) => {
