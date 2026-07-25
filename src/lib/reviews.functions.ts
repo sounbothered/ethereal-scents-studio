@@ -67,41 +67,19 @@ async function decorateReviews(
   }));
 }
 
-// Public: only approved reviews are returned publicly.
-// When a signed-in user calls this, they also see their own pending/rejected reviews.
+// Public: only approved reviews are returned.
 export const listReviewsForProduct = createServerFn({ method: "GET" })
   .inputValidator((input: { productId: string }) =>
     z.object({ productId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data }): Promise<ReviewWithMeta[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    // Try to identify caller (optional) so we can also return their own pending items.
-    let callerId: string | null = null;
-    try {
-      const req = (await import("@tanstack/react-start/server")).getRequest?.();
-      const auth = req?.headers.get("authorization");
-      if (auth?.startsWith("Bearer ")) {
-        const { data: userData } = await supabaseAdmin.auth.getUser(auth.slice(7));
-        callerId = userData.user?.id ?? null;
-      }
-    } catch {
-      // no request context — treat as anonymous
-    }
-
-    let q = supabaseAdmin
+    const { data: reviews, error } = await supabaseAdmin
       .from("reviews")
       .select("id, product_id, user_id, rating, title, body, status, created_at")
       .eq("product_id", data.productId)
+      .eq("status", "approved")
       .order("created_at", { ascending: false });
-
-    if (callerId) {
-      q = q.or(`status.eq.approved,user_id.eq.${callerId}`);
-    } else {
-      q = q.eq("status", "approved");
-    }
-
-    const { data: reviews, error } = await q;
     if (error) throw new Error(error.message);
     return decorateReviews((reviews ?? []) as never);
   });
