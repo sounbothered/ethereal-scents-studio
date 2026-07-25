@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import heroImg from "@/assets/perfume-hero.jpg";
 import p1 from "@/assets/perfume-1.jpg";
 import p2 from "@/assets/perfume-2.jpg";
@@ -83,6 +85,7 @@ function Home() {
   const [cart, setCart] = useState(0);
   const [selected, setSelected] = useState(1);
   const [scrollY, setScrollY] = useState(0);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -91,6 +94,21 @@ function Home() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserEmail(data.session?.user.email ?? null);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  };
 
   const onHeroMove = (e: React.MouseEvent | React.TouchEvent) => {
     const el = heroRef.current;
@@ -120,10 +138,23 @@ function Home() {
             <a className="hover:text-foreground transition-colors">Collection</a>
             <a className="hover:text-foreground transition-colors">Journal</a>
           </div>
-          <div className="flex items-center gap-4 text-[11px] uppercase tracking-[0.25em]">
-            <button aria-label="Search" className="opacity-70 hover:opacity-100">
-              ⌕
-            </button>
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.25em]">
+            {userEmail ? (
+              <button
+                onClick={handleSignOut}
+                className="hidden sm:inline-block text-muted-foreground hover:text-gold transition-colors"
+                title={userEmail}
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="hidden sm:inline-block text-muted-foreground hover:text-gold transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
             <button
               onClick={() => setCart((c) => c + 1)}
               className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 hover:border-gold transition-colors"
@@ -136,6 +167,7 @@ function Home() {
           </div>
         </div>
       </nav>
+
 
       {/* HERO */}
       <section className="relative px-6 pt-28 pb-16">
