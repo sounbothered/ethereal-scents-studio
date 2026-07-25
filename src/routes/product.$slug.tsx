@@ -7,6 +7,7 @@ import { listReviewsForProduct, upsertReview, deleteMyReview } from "@/lib/revie
 import { useCart, formatPrice } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
+import { imageForSlug } from "@/lib/product-images";
 
 const productQO = (slug: string) =>
   queryOptions({
