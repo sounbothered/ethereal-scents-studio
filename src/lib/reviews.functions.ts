@@ -138,7 +138,32 @@ export const deleteMyReview = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getMyReviewForProduct = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { productId: string }) =>
+    z.object({ productId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("reviews")
+      .select("id, rating, title, body, status, created_at")
+      .eq("product_id", data.productId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row as {
+      id: string;
+      rating: number;
+      title: string | null;
+      body: string | null;
+      status: "pending" | "approved" | "rejected";
+      created_at: string;
+    } | null;
+  });
+
 // --- Moderation ---
+
+
 
 async function assertModerator(
   context: { supabase: unknown },
