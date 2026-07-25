@@ -112,6 +112,7 @@ function Home() {
           </div>
           <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
             <Link to="/maison" className="hover:text-foreground transition-colors">The House</Link>
+            <a href="#nigerian-houses" className="hover:text-foreground transition-colors">Nigerian</a>
             <Link to="/journal" className="hover:text-foreground transition-colors">Journal</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             {userEmail && (
