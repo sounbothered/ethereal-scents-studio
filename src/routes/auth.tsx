@@ -74,10 +74,11 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        const returnPath = next ?? "/";
         const { error } = await supabase.auth.signUp({
           email: emailV.data,
           password: pwV.data,
-          options: { emailRedirectTo: `${window.location.origin}/` },
+          options: { emailRedirectTo: `${window.location.origin}${returnPath}` },
         });
         if (error) throw error;
         toast.success("Account created. Check your email to confirm.");
@@ -88,7 +89,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome back.");
-        navigate({ to: "/", replace: true });
+        goNext();
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -101,13 +102,15 @@ function AuthPage() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
+      const returnPath = next ?? "/";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${returnPath}`,
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
-      navigate({ to: "/", replace: true });
+      goNext();
     } catch (err) {
+
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg);
       setLoading(false);
