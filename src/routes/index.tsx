@@ -1,12 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import heroImg from "@/assets/perfume-hero.jpg";
-import p1 from "@/assets/perfume-1.jpg";
-import p2 from "@/assets/perfume-2.jpg";
-import p3 from "@/assets/perfume-3.jpg";
-import p4 from "@/assets/perfume-4.jpg";
+import { listProducts } from "@/lib/catalog.functions";
+import { useCart, formatPrice } from "@/lib/cart";
+import { imageForSlug, heroImg } from "@/lib/product-images";
+
+const productsQO = queryOptions({
+  queryKey: ["products"],
+  queryFn: () => listProducts(),
+  staleTime: 60_000,
+});
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,7 +20,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Lumière Ambrée, and Noir Élixir — hand-poured, olfactory narratives crafted in Grasse.",
+          "ÆTHEL is a maison of rare fragrances. Discover Nocturne, Velvet Hour, and Midnight Tide — hand-poured olfactory narratives crafted in Grasse.",
       },
       { property: "og:title", content: "ÆTHEL — Rare Fragrances" },
       {
@@ -27,46 +32,12 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(productsQO),
+  errorComponent: ({ error }) => (
+    <div className="p-10 text-sm text-destructive">Could not load collection: {error.message}</div>
+  ),
   component: Home,
 });
-
-const products = [
-  {
-    name: "Nocturne",
-    tagline: "Black Saffron · Leather · Vetiver",
-    price: 240,
-    img: heroImg,
-    ratio: "aspect-[4/5]",
-  },
-  {
-    name: "Lumière Ambrée",
-    tagline: "Amber · Vanilla · Library Dust",
-    price: 195,
-    img: p1,
-    ratio: "aspect-square",
-  },
-  {
-    name: "Cristal Blanc",
-    tagline: "Iris · White Musk · Bergamot",
-    price: 220,
-    img: p2,
-    ratio: "aspect-[4/5]",
-  },
-  {
-    name: "Noble Marine",
-    tagline: "Sea Salt · Ambergris · Cedar",
-    price: 210,
-    img: p3,
-    ratio: "aspect-square",
-  },
-  {
-    name: "Noir Élixir",
-    tagline: "Oud · Rose · Tobacco",
-    price: 285,
-    img: p4,
-    ratio: "aspect-[4/5]",
-  },
-];
 
 const notes = [
   { label: "Top", value: "Black Saffron, Bergamot" },
@@ -82,7 +53,8 @@ const families = [
 ];
 
 function Home() {
-  const [cart, setCart] = useState(0);
+  const { data: products } = useSuspenseQuery(productsQO);
+  const { count, add } = useCart();
   const [selected, setSelected] = useState(1);
   const [scrollY, setScrollY] = useState(0);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -110,17 +82,21 @@ function Home() {
     toast.success("Signed out");
   };
 
+  const hero = products[0];
+  const collection = products;
+
   const onHeroMove = (e: React.MouseEvent | React.TouchEvent) => {
     const el = heroRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const pt =
-      "touches" in e ? e.touches[0] : (e as React.MouseEvent);
+    const pt = "touches" in e ? e.touches[0] : (e as React.MouseEvent);
     const px = (pt.clientX - rect.left) / rect.width - 0.5;
     const py = (pt.clientY - rect.top) / rect.height - 0.5;
     setTilt({ x: py * -18, y: px * 22 });
   };
   const resetTilt = () => setTilt({ x: 0, y: 0 });
+
+  const ratios = ["aspect-[4/5]", "aspect-square", "aspect-[4/5]", "aspect-square"];
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -129,14 +105,16 @@ function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-gold animate-glow" />
-            <span className="font-serif text-lg italic tracking-[0.25em]">
-              ÆTHEL
-            </span>
+            <span className="font-serif text-lg italic tracking-[0.25em]">ÆTHEL</span>
           </div>
           <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            <a className="hover:text-foreground transition-colors">Maison</a>
-            <a className="hover:text-foreground transition-colors">Collection</a>
-            <a className="hover:text-foreground transition-colors">Journal</a>
+            <a className="hover:text-foreground transition-colors cursor-pointer">Maison</a>
+            <a className="hover:text-foreground transition-colors cursor-pointer">Collection</a>
+            {userEmail && (
+              <Link to="/account" className="hover:text-foreground transition-colors">
+                Account
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.25em]">
             {userEmail ? (
@@ -155,119 +133,106 @@ function Home() {
                 Sign in
               </Link>
             )}
-            <button
-              onClick={() => setCart((c) => c + 1)}
+            <Link
+              to="/checkout"
               className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 hover:border-gold transition-colors"
             >
               <span>Bag</span>
               <span className="inline-flex size-4 items-center justify-center rounded-full bg-gold text-[9px] font-bold text-primary-foreground">
-                {cart}
+                {count}
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
 
-
       {/* HERO */}
       <section className="relative px-6 pt-28 pb-16">
-        {/* ambient glow */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-60"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(600px 400px at 50% 30%, oklch(0.82 0.13 85 / 0.18), transparent 70%)",
+              "radial-gradient(700px 500px at 20% 30%, oklch(0.82 0.13 85 / 0.18), transparent 70%), radial-gradient(500px 400px at 80% 70%, oklch(0.82 0.13 85 / 0.10), transparent 70%)",
           }}
         />
         <div className="relative mx-auto max-w-6xl">
-          <div className="mb-8 flex items-center gap-3 animate-rise">
-            <div className="h-px w-8 bg-gold/50" />
-            <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
-              Maison de Parfum · Est. 1908
-            </span>
-          </div>
-
-          <h1 className="animate-rise font-serif text-[clamp(2.75rem,10vw,6rem)] leading-[0.95] tracking-tight text-balance">
-            The Scent of
-            <br />
-            <span className="italic text-shimmer">Unspoken</span> Memory.
-          </h1>
-
-          <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground animate-rise [animation-delay:120ms]">
-            Hand-poured olfactory narratives, composed grain by grain in the
-            hills of Grasse — designed to linger between the present and the
-            past.
-          </p>
-
-          {/* 3D bottle stage */}
-          <div
-            ref={heroRef}
-            onMouseMove={onHeroMove}
-            onMouseLeave={resetTilt}
-            onTouchMove={onHeroMove}
-            onTouchEnd={resetTilt}
-            className="relative mt-12 perspective-1200 animate-rise [animation-delay:240ms]"
-          >
-            {/* slow-rotating aura */}
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-1/2 -z-10 size-[110%] -translate-x-1/2 -translate-y-1/2 animate-spin-slow rounded-full opacity-40"
-              style={{
-                background:
-                  "conic-gradient(from 0deg, transparent 0%, oklch(0.82 0.13 85 / 0.35) 25%, transparent 50%, oklch(0.82 0.13 85 / 0.25) 75%, transparent 100%)",
-                filter: "blur(40px)",
-              }}
-            />
-
-            <div
-              className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-3xl border border-border shadow-[0_50px_120px_-30px_rgba(0,0,0,0.9)] preserve-3d transition-transform duration-300 ease-out"
-              style={{
-                transform: `translateY(${scrollY * -0.08}px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-              }}
-            >
+          <div className="grid grid-cols-12 items-center gap-8">
+            <div className="col-span-12 md:col-span-6 space-y-6 animate-rise">
+              <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
+                Est. Grasse, 1908 · Maison Æthel
+              </span>
+              <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight text-shimmer">
+                Scent, <br />
+                <span className="italic">Sculpted.</span>
+              </h1>
+              <p className="max-w-md text-sm md:text-base text-muted-foreground leading-relaxed">
+                Hand-poured olfactory narratives designed to linger in the space
+                between memory and moment. Never rushed, never in the past.
+              </p>
+            </div>
+            <div className="col-span-12 md:col-span-6">
               <div
-                className="absolute inset-0 animate-float-3d"
-                style={{ transformStyle: "preserve-3d" }}
+                ref={heroRef}
+                onMouseMove={onHeroMove}
+                onMouseLeave={resetTilt}
+                onTouchMove={onHeroMove}
+                onTouchEnd={resetTilt}
+                className="relative perspective-1200 animate-rise [animation-delay:240ms]"
               >
-                <img
-                  src={heroImg}
-                  alt="Nocturne Eau de Parfum bottle"
-                  width={800}
-                  height={1104}
-                  className="h-full w-full object-cover"
-                />
-                {/* rim highlight */}
                 <div
                   aria-hidden
-                  className="absolute inset-0"
+                  className="absolute left-1/2 top-1/2 -z-10 size-[110%] -translate-x-1/2 -translate-y-1/2 animate-spin-slow rounded-full opacity-40"
                   style={{
                     background:
-                      "linear-gradient(115deg, transparent 55%, oklch(0.82 0.13 85 / 0.18) 60%, transparent 65%)",
+                      "conic-gradient(from 0deg, transparent 0%, oklch(0.82 0.13 85 / 0.35) 25%, transparent 50%, oklch(0.82 0.13 85 / 0.25) 75%, transparent 100%)",
+                    filter: "blur(40px)",
                   }}
                 />
-              </div>
-              {/* label */}
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.35em] text-gold">
-                    No. 07
-                  </p>
-                  <p className="mt-1 font-serif text-3xl italic">Nocturne</p>
+                <div
+                  className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-3xl border border-border shadow-[0_50px_120px_-30px_rgba(0,0,0,0.9)] preserve-3d transition-transform duration-300 ease-out"
+                  style={{
+                    transform: `translateY(${scrollY * -0.08}px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                  }}
+                >
+                  <div className="absolute inset-0 animate-float-3d">
+                    <img
+                      src={heroImg}
+                      alt="Nocturne perfume bottle"
+                      className="h-full w-full object-cover"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(115deg, transparent 55%, oklch(0.82 0.13 85 / 0.18) 60%, transparent 65%)",
+                      }}
+                    />
+                  </div>
+                  {hero && (
+                    <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-gold">
+                          No. 01
+                        </p>
+                        <p className="mt-1 font-serif text-3xl italic">{hero.name}</p>
+                      </div>
+                      <p className="font-serif text-xl">
+                        {formatPrice(hero.price_cents, hero.currency)}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <p className="font-serif text-xl">$240</p>
+                <div
+                  aria-hidden
+                  className="mx-auto mt-4 h-6 w-2/3 max-w-xs rounded-[50%] bg-black/70 blur-2xl"
+                />
               </div>
             </div>
-
-            {/* shadow */}
-            <div
-              aria-hidden
-              className="mx-auto mt-4 h-6 w-2/3 max-w-xs rounded-[50%] bg-black/70 blur-2xl"
-            />
           </div>
 
-          {/* Note strip */}
-          <div className="mt-10 flex gap-3 overflow-x-auto no-scrollbar pb-2">
+          <div className="mt-16 flex gap-3 overflow-x-auto no-scrollbar pb-2">
             {notes.map((n) => (
               <div
                 key={n.label}
@@ -281,21 +246,29 @@ function Home() {
             ))}
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-3">
-            <button
-              onClick={() => setCart((c) => c + 1)}
-              className="group relative overflow-hidden rounded-full bg-foreground px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-background transition-transform hover:scale-[1.02]"
-            >
-              <span className="relative z-10">Add Nocturne — $240</span>
-              <span className="absolute inset-0 -translate-x-full bg-gold transition-transform duration-500 group-hover:translate-x-0" />
-              <span className="absolute inset-0 -z-0 flex items-center justify-center text-primary-foreground opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                Add Nocturne — $240
-              </span>
-            </button>
-            <button className="rounded-full border border-border px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] hover:border-gold transition-colors">
-              Discover Scent
-            </button>
-          </div>
+          {hero && (
+            <div className="mt-10 flex flex-wrap gap-3">
+              <button
+                onClick={() => {
+                  add(hero.id, 1);
+                  toast.success(`${hero.name} added to your bag`);
+                }}
+                className="group relative overflow-hidden rounded-full bg-foreground px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-background transition-transform hover:scale-[1.02]"
+              >
+                <span className="relative z-10">
+                  Add {hero.name} — {formatPrice(hero.price_cents, hero.currency)}
+                </span>
+                <span className="absolute inset-0 -translate-x-full bg-gold transition-transform duration-500 group-hover:translate-x-0" />
+              </button>
+              <Link
+                to="/product/$slug"
+                params={{ slug: hero.slug }}
+                className="rounded-full border border-border px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] hover:border-gold transition-colors"
+              >
+                Discover Scent
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -333,23 +306,22 @@ function Home() {
                 <span className="italic">Collections</span>
               </h2>
             </div>
-            <button className="border-b border-gold pb-1 text-[10px] uppercase tracking-[0.3em] text-gold">
-              View All
-            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-            {products.map((p, i) => (
-              <article
-                key={p.name}
-                className="group cursor-pointer"
+            {collection.map((p, i) => (
+              <Link
+                key={p.id}
+                to="/product/$slug"
+                params={{ slug: p.slug }}
+                className="group block"
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <div
-                  className={`relative ${p.ratio} overflow-hidden rounded-2xl border border-border bg-card`}
+                  className={`relative ${ratios[i % ratios.length]} overflow-hidden rounded-2xl border border-border bg-card`}
                 >
                   <img
-                    src={p.img}
+                    src={imageForSlug(p.slug)}
                     alt={`${p.name} perfume bottle`}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
@@ -360,8 +332,10 @@ function Home() {
                   />
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      setCart((c) => c + 1);
+                      add(p.id, 1);
+                      toast.success(`${p.name} added to your bag`);
                     }}
                     className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-foreground text-background transition-transform hover:scale-110"
                     aria-label={`Add ${p.name} to bag`}
@@ -378,12 +352,14 @@ function Home() {
                   <div>
                     <h3 className="font-serif text-2xl italic">{p.name}</h3>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {p.tagline}
+                      {p.notes}
                     </p>
                   </div>
-                  <span className="font-serif text-xl">${p.price}</span>
+                  <span className="font-serif text-xl">
+                    {formatPrice(p.price_cents, p.currency)}
+                  </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
@@ -406,12 +382,10 @@ function Home() {
         </div>
       </section>
 
-      {/* SCULPT YOUR SCENT */}
+      {/* SCULPT */}
       <section className="px-6 py-24">
         <div className="mx-auto max-w-3xl">
-          <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
-            Bespoke
-          </span>
+          <span className="text-[10px] uppercase tracking-[0.4em] text-gold">Bespoke</span>
           <h2 className="mt-4 font-serif text-4xl md:text-5xl">
             Sculpt <span className="italic">Your</span> Scent
           </h2>
@@ -419,7 +393,6 @@ function Home() {
             Compose a private accord from four base families. Each vial is
             blended by hand and delivered in seven days.
           </p>
-
           <div className="mt-10 flex flex-col gap-2">
             {families.map((f, i) => {
               const active = selected === i;
@@ -437,9 +410,7 @@ function Home() {
                     <span className="font-serif text-xs tabular-nums opacity-60">
                       0{i + 1}
                     </span>
-                    <span className="text-sm uppercase tracking-[0.2em]">
-                      {f}
-                    </span>
+                    <span className="text-sm uppercase tracking-[0.2em]">{f}</span>
                   </span>
                   <span
                     className={`size-3 rounded-full border transition-colors ${
@@ -450,10 +421,6 @@ function Home() {
               );
             })}
           </div>
-
-          <button className="mt-10 rounded-full bg-gold px-10 py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-primary-foreground transition-transform hover:scale-[1.02]">
-            Commission Your Vial — $360
-          </button>
         </div>
       </section>
 
@@ -464,50 +431,14 @@ function Home() {
             <div className="max-w-sm">
               <div className="flex items-center gap-2">
                 <span className="size-1.5 rounded-full bg-gold" />
-                <span className="font-serif text-2xl italic tracking-[0.25em]">
-                  ÆTHEL
-                </span>
+                <span className="font-serif text-2xl italic tracking-[0.25em]">ÆTHEL</span>
               </div>
               <p className="mt-4 text-sm text-muted-foreground">
                 Rare fragrances hand-poured in Grasse, France. A quiet maison
                 for those who wear scent as language.
               </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-10 md:grid-cols-3 md:gap-16 text-sm">
-              {[
-                {
-                  title: "Maison",
-                  items: ["Our Story", "Atelier", "Ingredients"],
-                },
-                {
-                  title: "Boutique",
-                  items: ["Shop All", "Bespoke", "Gift Cards"],
-                },
-                {
-                  title: "Care",
-                  items: ["Shipping", "Contact", "Journal"],
-                },
-              ].map((col) => (
-                <div key={col.title}>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-gold">
-                    {col.title}
-                  </p>
-                  <ul className="mt-4 space-y-2 text-muted-foreground">
-                    {col.items.map((it) => (
-                      <li
-                        key={it}
-                        className="cursor-pointer hover:text-foreground transition-colors"
-                      >
-                        {it}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           </div>
-
           <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border pt-8 text-[10px] uppercase tracking-[0.3em] text-muted-foreground md:flex-row md:items-center">
             <span>© 2026 Æthel Parfumerie · Grasse</span>
             <span>Crafted with intent</span>
