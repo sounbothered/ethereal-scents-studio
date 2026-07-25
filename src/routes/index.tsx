@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { listProducts } from "@/lib/catalog.functions";
 import { useCart, formatPrice } from "@/lib/cart";
 import { imageForSlug, heroImg } from "@/lib/product-images";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const productsQO = queryOptions({
   queryKey: ["products"],
@@ -108,8 +109,9 @@ function Home() {
             <span className="font-serif text-lg italic tracking-[0.25em]">ÆTHEL</span>
           </div>
           <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            <a className="hover:text-foreground transition-colors cursor-pointer">Maison</a>
-            <a className="hover:text-foreground transition-colors cursor-pointer">Collection</a>
+            <Link to="/maison" className="hover:text-foreground transition-colors">The House</Link>
+            <Link to="/journal" className="hover:text-foreground transition-colors">Journal</Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             {userEmail && (
               <Link to="/account" className="hover:text-foreground transition-colors">
                 Account
@@ -424,27 +426,7 @@ function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-border px-6 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col gap-12 md:flex-row md:justify-between">
-            <div className="max-w-sm">
-              <div className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-gold" />
-                <span className="font-serif text-2xl italic tracking-[0.25em]">ÆTHEL</span>
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Rare fragrances hand-poured in Grasse, France. A quiet maison
-                for those who wear scent as language.
-              </p>
-            </div>
-          </div>
-          <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border pt-8 text-[10px] uppercase tracking-[0.3em] text-muted-foreground md:flex-row md:items-center">
-            <span>© 2026 Æthel Parfumerie · Grasse</span>
-            <span>Crafted with intent</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
