@@ -18,10 +18,13 @@ export type Product = {
   longevity: number | null;
   sillage: number | null;
   concentration: string | null;
+  collection: string;
+  origin: string | null;
+  price_ngn: number | null;
 };
 
 const SELECT =
-  "id, slug, name, house, notes, description, price_cents, currency, image_url, sort, top_notes, heart_notes, base_notes, longevity, sillage, concentration";
+  "id, slug, name, house, notes, description, price_cents, currency, image_url, sort, top_notes, heart_notes, base_notes, longevity, sillage, concentration, collection, origin, price_ngn";
 
 async function publicClient() {
   const { createClient } = await import("@supabase/supabase-js");
