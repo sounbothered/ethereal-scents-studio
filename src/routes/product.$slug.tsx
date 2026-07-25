@@ -3,7 +3,12 @@ import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getProductBySlug } from "@/lib/catalog.functions";
-import { listReviewsForProduct, upsertReview, deleteMyReview } from "@/lib/reviews.functions";
+import {
+  listReviewsForProduct,
+  upsertReview,
+  deleteMyReview,
+  getMyReviewForProduct,
+} from "@/lib/reviews.functions";
 import { useCart, formatPrice } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
