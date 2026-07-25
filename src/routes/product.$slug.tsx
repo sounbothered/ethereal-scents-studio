@@ -237,7 +237,107 @@ function Stars({ value, size = 14 }: { value: number; size?: number }) {
   );
 }
 
+function ScentPyramid({ product }: { product: import("@/lib/catalog.functions").Product }) {
+  const hasNotes =
+    (product.top_notes?.length ?? 0) +
+      (product.heart_notes?.length ?? 0) +
+      (product.base_notes?.length ?? 0) >
+    0;
+  const hasMeters = product.longevity != null || product.sillage != null || product.concentration;
+  if (!hasNotes && !hasMeters) return null;
+
+  const tiers = [
+    { label: "Top", tone: "Opening — first impression", notes: product.top_notes ?? [] },
+    { label: "Heart", tone: "The character that unfolds", notes: product.heart_notes ?? [] },
+    { label: "Base", tone: "The dry-down that lingers", notes: product.base_notes ?? [] },
+  ];
+
+  return (
+    <section className="mt-24 border-t border-border pt-12">
+      <div className="grid gap-12 md:grid-cols-[1.3fr_1fr]">
+        <div>
+          <span className="text-[10px] uppercase tracking-[0.4em] text-gold">Composition</span>
+          <h2 className="mt-1 font-serif text-3xl">Olfactory pyramid</h2>
+          <ol className="mt-8 space-y-6">
+            {tiers.map((t, i) => (
+              <li key={t.label} className="relative pl-8">
+                <span className="absolute left-0 top-1.5 flex size-5 items-center justify-center rounded-full border border-gold/60 text-[10px] text-gold">
+                  {i + 1}
+                </span>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-gold">{t.label}</div>
+                <div className="text-xs text-muted-foreground italic">{t.tone}</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {t.notes.length === 0 ? (
+                    <span className="text-xs text-muted-foreground/70">—</span>
+                  ) : (
+                    t.notes.map((n) => (
+                      <span
+                        key={n}
+                        className="rounded-full border border-border bg-card/60 px-3 py-1 text-xs backdrop-blur-xl"
+                      >
+                        {n}
+                      </span>
+                    ))
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <aside className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-xl h-fit">
+          <span className="text-[10px] uppercase tracking-[0.4em] text-gold">Wear profile</span>
+          <h3 className="mt-1 font-serif text-2xl">On the skin</h3>
+          <dl className="mt-6 space-y-5">
+            {product.concentration && (
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Concentration</dt>
+                <dd className="mt-1 font-serif text-lg">{product.concentration}</dd>
+              </div>
+            )}
+            {product.longevity != null && (
+              <Meter label="Longevity" value={product.longevity} hint={longevityHint(product.longevity)} />
+            )}
+            {product.sillage != null && (
+              <Meter label="Sillage" value={product.sillage} hint={sillageHint(product.sillage)} />
+            )}
+          </dl>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function longevityHint(v: number) {
+  return ["Fleeting", "Short", "Moderate", "Long", "All-day"][Math.max(0, Math.min(4, v - 1))];
+}
+function sillageHint(v: number) {
+  return ["Intimate", "Discreet", "Notable", "Radiant", "Enveloping"][Math.max(0, Math.min(4, v - 1))];
+}
+
+function Meter({ label, value, hint }: { label: string; value: number; hint: string }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <dt className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{label}</dt>
+        <dd className="text-xs text-gold">{hint}</dd>
+      </div>
+      <div className="mt-2 flex gap-1.5">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span
+            key={n}
+            className={`h-1.5 flex-1 rounded-full transition-colors ${
+              n <= value ? "bg-gold" : "bg-border"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ReviewsSection({
+
   productId,
   reviews,
   userId,
