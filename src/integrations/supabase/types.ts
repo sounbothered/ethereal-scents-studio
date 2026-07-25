@@ -98,6 +98,47 @@ export type Database = {
         }
         Relationships: []
       }
+      price_scrape_log: {
+        Row: {
+          created_at: string
+          id: string
+          new_price_ngn: number | null
+          note: string | null
+          old_price_ngn: number | null
+          product_id: string | null
+          source_url: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_price_ngn?: number | null
+          note?: string | null
+          old_price_ngn?: number | null
+          product_id?: string | null
+          source_url?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_price_ngn?: number | null
+          note?: string | null
+          old_price_ngn?: number | null
+          product_id?: string | null
+          source_url?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_scrape_log_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -116,10 +157,15 @@ export type Database = {
           notes: string | null
           origin: string | null
           price_cents: number
+          price_last_scrape_note: string | null
+          price_last_scrape_status: string | null
+          price_last_scraped_at: string | null
           price_ngn: number | null
+          price_source: string | null
           sillage: number | null
           slug: string
           sort: number
+          source_url: string | null
           stripe_price_id: string | null
           stripe_product_id: string | null
           top_notes: string[] | null
@@ -142,10 +188,15 @@ export type Database = {
           notes?: string | null
           origin?: string | null
           price_cents: number
+          price_last_scrape_note?: string | null
+          price_last_scrape_status?: string | null
+          price_last_scraped_at?: string | null
           price_ngn?: number | null
+          price_source?: string | null
           sillage?: number | null
           slug: string
           sort?: number
+          source_url?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           top_notes?: string[] | null
@@ -168,10 +219,15 @@ export type Database = {
           notes?: string | null
           origin?: string | null
           price_cents?: number
+          price_last_scrape_note?: string | null
+          price_last_scrape_status?: string | null
+          price_last_scraped_at?: string | null
           price_ngn?: number | null
+          price_source?: string | null
           sillage?: number | null
           slug?: string
           sort?: number
+          source_url?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           top_notes?: string[] | null
