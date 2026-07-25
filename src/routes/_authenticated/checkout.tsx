@@ -74,8 +74,8 @@ function CheckoutPage() {
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
-  const total = lines.reduce((s, l) => s + l.price_cents * l.quantity, 0);
-  const currency = lines[0]?.currency ?? "usd";
+  const totals = sumBagTotals(lines);
+  const showDualTotal = totals.hasNgnNative;
 
   const setField = (k: keyof AddressForm) => (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -209,8 +209,20 @@ function CheckoutPage() {
                         <button type="button" onClick={() => remove(l.id)} className="ml-auto text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive">Remove</button>
                       </div>
                     </div>
-                    <div className="text-sm tabular-nums">
-                      {formatPrice(l.price_cents * l.quantity, l.currency)}
+                    <div className="text-right text-sm tabular-nums">
+                      {(() => {
+                        const d = formatDualLineTotal(l, l.quantity);
+                        return (
+                          <>
+                            <div>{d.primary}</div>
+                            {d.secondary && (
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                                {d.secondary}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </li>
                 ))}
@@ -218,14 +230,31 @@ function CheckoutPage() {
 
               <dl className="mt-4 space-y-1.5 border-t border-border pt-4 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <dt>Subtotal</dt><dd className="tabular-nums">{formatPrice(total, currency)}</dd>
+                  <dt>Subtotal</dt>
+                  <dd className="tabular-nums text-right">
+                    <div>{showDualTotal ? formatNgn(totals.ngnKobo) : formatPrice(totals.usdCents, "USD")}</div>
+                    {showDualTotal && (
+                      <div className="text-[10px] uppercase tracking-[0.2em]">
+                        ~{formatPrice(totals.usdCents, "USD")}
+                      </div>
+                    )}
+                  </dd>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <dt>Shipping</dt><dd>Complimentary</dd>
                 </div>
                 <div className="flex items-baseline justify-between pt-2 border-t border-border">
                   <dt className="text-[10px] uppercase tracking-[0.3em]">Total</dt>
-                  <dd className="font-serif text-2xl tabular-nums">{formatPrice(total, currency)}</dd>
+                  <dd className="text-right">
+                    <div className="font-serif text-2xl tabular-nums">
+                      {showDualTotal ? formatNgn(totals.ngnKobo) : formatPrice(totals.usdCents, "USD")}
+                    </div>
+                    {showDualTotal && (
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        ~{formatPrice(totals.usdCents, "USD")}
+                      </div>
+                    )}
+                  </dd>
                 </div>
               </dl>
 
