@@ -67,24 +67,56 @@ export function useCart() {
   return { items, count, ready, add, setQty, remove, clear };
 }
 
+/**
+ * Money & rounding rules (single source of truth)
+ * -------------------------------------------------
+ * Storage:
+ *   • USD is stored as integer CENTS  (1 USD = 100 cents)
+ *   • NGN is stored as integer KOBO   (1 NGN = 100 kobo)
+ * Display:
+ *   • Both currencies render as WHOLE major units (no fractional $ / ₦)
+ *   • Rounding is HALF-UP to the nearest whole major unit
+ * Arithmetic:
+ *   • Multiply / sum ONLY in integer minor units, never on formatted strings
+ *   • Convert across currencies at the LAST step, via the helpers below
+ */
+
+// USD ↔ NGN reference rate (mid-2026). One knob, used everywhere.
+const NGN_PER_USD = 1394;
+
+/** Round HALF-UP; keeps behaviour identical for negative values too. */
+function roundHalfUp(n: number): number {
+  return Math.sign(n) * Math.round(Math.abs(n));
+}
+
+/** cents (USD minor) → kobo (NGN minor). Both are integers. */
+export function usdCentsToNgnKobo(cents: number): number {
+  // cents * (naira/dollar) = kobo   (because 100 cents = 1 dollar, 100 kobo = 1 naira)
+  return roundHalfUp(cents * NGN_PER_USD);
+}
+
+/** kobo (NGN minor) → cents (USD minor). Both are integers. */
+export function ngnKoboToUsdCents(kobo: number): number {
+  return roundHalfUp(kobo / NGN_PER_USD);
+}
+
 export function formatPrice(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),
     minimumFractionDigits: 0,
-  }).format(cents / 100);
+    maximumFractionDigits: 0,
+  }).format(roundHalfUp(cents) / 100);
 }
 
-function formatNgn(kobo: number) {
+export function formatNgn(kobo: number) {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
     minimumFractionDigits: 0,
-  }).format(kobo / 100);
+    maximumFractionDigits: 0,
+  }).format(roundHalfUp(kobo) / 100);
 }
-
-// USD-per-NGN rate for approximate cross-display (mid-2026)
-const NGN_PER_USD = 1394;
 
 export type PriceInput = {
   price_cents: number;
@@ -93,15 +125,74 @@ export type PriceInput = {
   origin?: string | null;
 };
 
+/** True when a product's canonical price is stored in NGN. */
+function isNgnNative(p: PriceInput): boolean {
+  return p.origin?.toLowerCase() === "nigeria" && p.price_ngn != null;
+}
+
+/** Canonical minor-unit amount + currency for a single unit of `p`. */
+export function unitMinor(p: PriceInput): { minor: number; currency: "NGN" | "USD" } {
+  if (isNgnNative(p) && p.price_ngn != null) return { minor: p.price_ngn, currency: "NGN" };
+  return { minor: p.price_cents, currency: "USD" };
+}
+
 /** Returns { primary, secondary } — NGN-primary for Nigerian products, USD-primary otherwise. */
 export function formatDualPrice(p: PriceInput): { primary: string; secondary: string | null } {
-  const isNgnNative = (p.origin?.toLowerCase() === "nigeria") && p.price_ngn != null;
-  if (isNgnNative && p.price_ngn != null) {
-    const usd = Math.round(p.price_ngn / 100 / NGN_PER_USD);
-    return { primary: formatNgn(p.price_ngn), secondary: `~$${usd}` };
+  if (isNgnNative(p) && p.price_ngn != null) {
+    return {
+      primary: formatNgn(p.price_ngn),
+      secondary: `~${formatPrice(ngnKoboToUsdCents(p.price_ngn), "USD")}`,
+    };
   }
-  const primary = formatPrice(p.price_cents, p.currency);
-  const ngn = p.price_ngn ?? Math.round((p.price_cents / 100) * NGN_PER_USD * 100);
-  return { primary, secondary: `~${formatNgn(ngn)}` };
+  const ngn = p.price_ngn ?? usdCentsToNgnKobo(p.price_cents);
+  return {
+    primary: formatPrice(p.price_cents, p.currency),
+    secondary: `~${formatNgn(ngn)}`,
+  };
 }
+
+/**
+ * Sum a bag of lines into both currencies. Line math stays in integer minor
+ * units per currency; cross-currency conversion happens exactly ONCE at the end.
+ */
+export function sumBagTotals(
+  lines: Array<PriceInput & { quantity: number }>,
+): { usdCents: number; ngnKobo: number; hasNgnNative: boolean } {
+  let usdCents = 0;
+  let ngnKobo = 0;
+  let hasNgnNative = false;
+  for (const l of lines) {
+    const { minor, currency } = unitMinor(l);
+    const lineMinor = minor * l.quantity; // exact integer
+    if (currency === "NGN") {
+      hasNgnNative = true;
+      ngnKobo += lineMinor;
+      usdCents += ngnKoboToUsdCents(lineMinor);
+    } else {
+      usdCents += lineMinor;
+      ngnKobo += usdCentsToNgnKobo(lineMinor);
+    }
+  }
+  return { usdCents, ngnKobo, hasNgnNative };
+}
+
+/** Line-total dual formatting: multiply in minor units, then format once. */
+export function formatDualLineTotal(
+  p: PriceInput,
+  quantity: number,
+): { primary: string; secondary: string | null } {
+  const { minor, currency } = unitMinor(p);
+  const lineMinor = minor * quantity;
+  if (currency === "NGN") {
+    return {
+      primary: formatNgn(lineMinor),
+      secondary: `~${formatPrice(ngnKoboToUsdCents(lineMinor), "USD")}`,
+    };
+  }
+  return {
+    primary: formatPrice(lineMinor, p.currency),
+    secondary: `~${formatNgn(usdCentsToNgnKobo(lineMinor))}`,
+  };
+}
+
 
