@@ -289,6 +289,22 @@ function ReviewsSection({
       <div className="mt-8 grid gap-10 md:grid-cols-[1fr_1.2fr]">
         {/* Form */}
         <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-xl">
+          {myReview && (
+            <div className="mb-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em]">
+              <span className="text-muted-foreground">Your review:</span>
+              <span
+                className={
+                  myReview.status === "approved"
+                    ? "rounded-full border border-gold/60 px-2 py-0.5 text-gold"
+                    : myReview.status === "rejected"
+                    ? "rounded-full border border-destructive/60 px-2 py-0.5 text-destructive"
+                    : "rounded-full border border-border px-2 py-0.5 text-muted-foreground"
+                }
+              >
+                {myReview.status}
+              </span>
+            </div>
+          )}
           {userId ? (
             <form onSubmit={submit} className="space-y-4">
               <div>
