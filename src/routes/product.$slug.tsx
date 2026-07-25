@@ -242,7 +242,11 @@ function ReviewsSection({
         },
       });
       qc.invalidateQueries({ queryKey: ["reviews", productId] });
-      toast.success(myReview ? "Review updated" : "Review posted");
+      toast.success(
+        myReview
+          ? "Review updated — awaiting moderation before it appears publicly"
+          : "Thank you — your review is awaiting moderation",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not post review");
     } finally {
