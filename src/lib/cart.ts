@@ -84,7 +84,7 @@ function formatNgn(kobo: number) {
 }
 
 // USD-per-NGN rate for approximate cross-display (mid-2026)
-const NGN_PER_USD = 1580;
+const NGN_PER_USD = 1394;
 
 export type PriceInput = {
   price_cents: number;
