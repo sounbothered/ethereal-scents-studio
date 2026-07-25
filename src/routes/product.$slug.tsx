@@ -1,9 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getProductBySlug } from "@/lib/catalog.functions";
-import { listReviewsForProduct, upsertReview, deleteMyReview } from "@/lib/reviews.functions";
+import {
+  listReviewsForProduct,
+  upsertReview,
+  deleteMyReview,
+  getMyReviewForProduct,
+} from "@/lib/reviews.functions";
 import { useCart, formatPrice } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -216,7 +221,12 @@ function ReviewsSection({
   userId: string | null;
 }) {
   const qc = useQueryClient();
-  const myReview = userId ? reviews.find((r) => r.user_id === userId) : undefined;
+  const { data: myReview } = useQuery({
+    queryKey: ["my-review", productId, userId],
+    queryFn: () =>
+      userId ? getMyReviewForProduct({ data: { productId } }) : Promise.resolve(null),
+    enabled: !!userId,
+  });
   const [rating, setRating] = useState(myReview?.rating ?? 5);
   const [title, setTitle] = useState(myReview?.title ?? "");
   const [body, setBody] = useState(myReview?.body ?? "");
@@ -241,8 +251,12 @@ function ReviewsSection({
           body: body.trim() || undefined,
         },
       });
-      qc.invalidateQueries({ queryKey: ["reviews", productId] });
-      toast.success(myReview ? "Review updated" : "Review posted");
+      qc.invalidateQueries({ queryKey: ["reviews", productId] }); qc.invalidateQueries({ queryKey: ["my-review", productId, userId] });
+      toast.success(
+        myReview
+          ? "Review updated — awaiting moderation before it appears publicly"
+          : "Thank you — your review is awaiting moderation",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not post review");
     } finally {
@@ -254,7 +268,7 @@ function ReviewsSection({
     setBusy(true);
     try {
       await deleteMyReview({ data: { productId } });
-      qc.invalidateQueries({ queryKey: ["reviews", productId] });
+      qc.invalidateQueries({ queryKey: ["reviews", productId] }); qc.invalidateQueries({ queryKey: ["my-review", productId, userId] });
       toast.success("Review removed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not remove review");
@@ -275,6 +289,22 @@ function ReviewsSection({
       <div className="mt-8 grid gap-10 md:grid-cols-[1fr_1.2fr]">
         {/* Form */}
         <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-xl">
+          {myReview && (
+            <div className="mb-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em]">
+              <span className="text-muted-foreground">Your review:</span>
+              <span
+                className={
+                  myReview.status === "approved"
+                    ? "rounded-full border border-gold/60 px-2 py-0.5 text-gold"
+                    : myReview.status === "rejected"
+                    ? "rounded-full border border-destructive/60 px-2 py-0.5 text-destructive"
+                    : "rounded-full border border-border px-2 py-0.5 text-muted-foreground"
+                }
+              >
+                {myReview.status}
+              </span>
+            </div>
+          )}
           {userId ? (
             <form onSubmit={submit} className="space-y-4">
               <div>
