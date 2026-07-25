@@ -15,6 +15,13 @@ const bySlug: Record<string, string> = {
   "ace-intense": p4,
   "essenza-lagos-nights": p3,
   "regal-oud": p2,
+  "xtacy-rose-absolue": p3,
+  "ludex-amber-kingdom": p2,
+  "club-de-nuit-intense-man": p1,
+  "club-de-nuit-sillage": p4,
+  "club-de-nuit-untold": p2,
+  "club-de-nuit-milestone": p3,
+  "club-de-nuit-woman": p1,
 };
 
 export function imageForSlug(slug: string, fallback = heroImg): string {
