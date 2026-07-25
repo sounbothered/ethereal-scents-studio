@@ -251,7 +251,7 @@ function ReviewsSection({
           body: body.trim() || undefined,
         },
       });
-      qc.invalidateQueries({ queryKey: ["reviews", productId] });
+      qc.invalidateQueries({ queryKey: ["reviews", productId] }); qc.invalidateQueries({ queryKey: ["my-review", productId, userId] });
       toast.success(
         myReview
           ? "Review updated — awaiting moderation before it appears publicly"
@@ -268,7 +268,7 @@ function ReviewsSection({
     setBusy(true);
     try {
       await deleteMyReview({ data: { productId } });
-      qc.invalidateQueries({ queryKey: ["reviews", productId] });
+      qc.invalidateQueries({ queryKey: ["reviews", productId] }); qc.invalidateQueries({ queryKey: ["my-review", productId, userId] });
       toast.success("Review removed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not remove review");
