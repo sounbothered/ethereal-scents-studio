@@ -194,7 +194,7 @@ export const listReviewsForModeration = createServerFn({ method: "GET" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<ReviewWithMeta[]> => {
-    await assertModerator(context.supabase, context.userId);
+    await assertModerator(context, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("reviews")
@@ -223,7 +223,7 @@ export const setReviewStatus = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertModerator(context.supabase, context.userId);
+    await assertModerator(context, context.userId);
     const { error } = await context.supabase
       .from("reviews")
       .update({
@@ -243,7 +243,7 @@ export const deleteReviewAsModerator = createServerFn({ method: "POST" })
     z.object({ reviewId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertModerator(context.supabase, context.userId);
+    await assertModerator(context, context.userId);
     const { error } = await context.supabase.from("reviews").delete().eq("id", data.reviewId);
     if (error) throw new Error(error.message);
     return { ok: true };
