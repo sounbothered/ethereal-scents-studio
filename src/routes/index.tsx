@@ -116,6 +116,7 @@ function Home() {
           <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
             <Link to="/maison" className="hover:text-foreground transition-colors">The House</Link>
             <a href="#nigerian-houses" className="hover:text-foreground transition-colors">Nigerian</a>
+            <a href="#club-de-nuit" className="hover:text-foreground transition-colors">Club de Nuit</a>
             <Link to="/journal" className="hover:text-foreground transition-colors">Journal</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             {userEmail && (
@@ -300,82 +301,9 @@ function Home() {
         </div>
       </div>
 
-      {/* COLLECTION */}
-      <section className="px-6 py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 flex items-end justify-between">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
-                The Archive
-              </span>
-              <h2 className="mt-4 font-serif text-4xl md:text-5xl leading-none">
-                Curated
-                <br />
-                <span className="italic">Collections</span>
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-            {collection.map((p, i) => (
-              <Link
-                key={p.id}
-                to="/product/$slug"
-                params={{ slug: p.slug }}
-                className="group block"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div
-                  className={`relative ${ratios[i % ratios.length]} overflow-hidden rounded-2xl border border-border bg-card`}
-                >
-                  <img
-                    src={imageForSlug(p.slug)}
-                    alt={`${p.name} perfume bottle`}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      add(p.id, 1);
-                      toast.success(`${p.name} added to your bag`);
-                    }}
-                    className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-foreground text-background transition-transform hover:scale-110"
-                    aria-label={`Add ${p.name} to bag`}
-                  >
-                    <span className="text-xl leading-none">+</span>
-                  </button>
-                  <div className="absolute bottom-4 left-4 right-4 translate-y-3 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-gold">
-                      Discover
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-start justify-between">
-                  <div>
-                    <h3 className="font-serif text-2xl italic">{p.name}</h3>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {p.notes}
-                    </p>
-                  </div>
-                  <span className="font-serif text-xl">
-                    {formatPrice(p.price_cents, p.currency)}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* NIGERIAN HOUSES */}
       {nigerian.length > 0 && (
-        <section id="nigerian-houses" className="px-6 py-24 border-t border-border bg-card/20">
+        <section id="nigerian-houses" className="px-6 py-24 border-t border-border">
           <div className="mx-auto max-w-6xl">
             <div className="mb-12 flex items-end justify-between gap-6 flex-wrap">
               <div>
@@ -450,6 +378,160 @@ function Home() {
           </div>
         </section>
       )}
+
+      {/* CLUB DE NUIT */}
+      {clubDeNuit.length > 0 && (
+        <section id="club-de-nuit" className="px-6 py-24 border-t border-border bg-card/20">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 flex items-end justify-between gap-6 flex-wrap">
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
+                  Armaf · UAE
+                </span>
+                <h2 className="mt-4 font-serif text-4xl md:text-5xl leading-none">
+                  Club de
+                  <br />
+                  <span className="italic">Nuit</span>
+                </h2>
+                <p className="mt-4 max-w-md text-sm text-muted-foreground">
+                  The cult Armaf lineup — pineapple, saffron and oud
+                  compositions loved across West Africa. Priced in Naira.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {clubDeNuit.map((p) => {
+                const dual = formatDualPrice(p);
+                return (
+                  <Link
+                    key={p.id}
+                    to="/product/$slug"
+                    params={{ slug: p.slug }}
+                    className="group block"
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-border bg-card">
+                      <img
+                        src={imageForSlug(p.slug)}
+                        alt={`${p.name} by ${p.house}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                      />
+                      <span className="absolute left-4 top-4 rounded-full border border-gold/40 bg-background/60 px-3 py-1 text-[9px] uppercase tracking-[0.3em] text-gold backdrop-blur">
+                        {p.house}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          add(p.id, 1);
+                          toast.success(`${p.name} added to your bag`);
+                        }}
+                        className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-foreground text-background transition-transform hover:scale-110"
+                        aria-label={`Add ${p.name} to bag`}
+                      >
+                        <span className="text-xl leading-none">+</span>
+                      </button>
+                    </div>
+                    <div className="mt-4 flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-serif text-xl italic">{p.name}</h3>
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          {p.notes}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-serif text-lg leading-tight">{dual.primary}</div>
+                        {dual.secondary && (
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                            {dual.secondary}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ÆTHEL COLLECTION */}
+      {collection.length > 0 && (
+      <section className="px-6 py-24 border-t border-border">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 flex items-end justify-between">
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-gold">
+                The Archive
+              </span>
+              <h2 className="mt-4 font-serif text-4xl md:text-5xl leading-none">
+                ÆTHEL
+                <br />
+                <span className="italic">Collections</span>
+              </h2>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+            {collection.map((p, i) => (
+              <Link
+                key={p.id}
+                to="/product/$slug"
+                params={{ slug: p.slug }}
+                className="group block"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div
+                  className={`relative ${ratios[i % ratios.length]} overflow-hidden rounded-2xl border border-border bg-card`}
+                >
+                  <img
+                    src={imageForSlug(p.slug)}
+                    alt={`${p.name} perfume bottle`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      add(p.id, 1);
+                      toast.success(`${p.name} added to your bag`);
+                    }}
+                    className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-foreground text-background transition-transform hover:scale-110"
+                    aria-label={`Add ${p.name} to bag`}
+                  >
+                    <span className="text-xl leading-none">+</span>
+                  </button>
+                  <div className="absolute bottom-4 left-4 right-4 translate-y-3 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-gold">
+                      Discover
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-serif text-2xl italic">{p.name}</h3>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {p.notes}
+                    </p>
+                  </div>
+                  <span className="font-serif text-xl">
+                    {formatPrice(p.price_cents, p.currency)}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
+
 
       {/* QUOTE */}
       <section className="px-6 py-24 bg-card/40 border-y border-border">
