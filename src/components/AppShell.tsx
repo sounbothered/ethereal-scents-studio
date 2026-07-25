@@ -46,6 +46,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             {userEmail && (
               <Link to="/account" className="hover:text-foreground transition-colors">Account</Link>
             )}
+            {isModerator && (
+              <Link to="/moderation" className="hover:text-gold transition-colors">Moderation</Link>
+            )}
           </div>
           <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.25em]">
             {userEmail ? (
