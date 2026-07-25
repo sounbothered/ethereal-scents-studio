@@ -6,7 +6,13 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import heroImg from "@/assets/perfume-hero.jpg";
 
+function sanitizeNext(raw: unknown): string | undefined {
+  if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) return undefined;
+  return raw;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({ next: sanitizeNext(s.next) }),
   head: () => ({
     meta: [
       { title: "Sign in · ÆTHEL" },
@@ -21,6 +27,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+
 const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z
   .string()
@@ -29,17 +36,25 @@ const passwordSchema = z
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
+  const goNext = () => {
+    if (next) window.location.replace(next);
+    else navigate({ to: "/", replace: true });
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/", replace: true });
+      if (data.session) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const onMove = (e: React.MouseEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -59,10 +74,11 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        const returnPath = next ?? "/";
         const { error } = await supabase.auth.signUp({
           email: emailV.data,
           password: pwV.data,
-          options: { emailRedirectTo: `${window.location.origin}/` },
+          options: { emailRedirectTo: `${window.location.origin}${returnPath}` },
         });
         if (error) throw error;
         toast.success("Account created. Check your email to confirm.");
@@ -73,7 +89,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome back.");
-        navigate({ to: "/", replace: true });
+        goNext();
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -86,13 +102,15 @@ function AuthPage() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
+      const returnPath = next ?? "/";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${returnPath}`,
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
-      navigate({ to: "/", replace: true });
+      goNext();
     } catch (err) {
+
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg);
       setLoading(false);

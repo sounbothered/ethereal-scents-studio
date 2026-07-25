@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://wnwdgkjqroyoyytxxfjb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "aethel-mcp",
+      "version": "0.1.0",
+      "title": "ÆTHEL Perfumery"
+    },
+    "tools": [
+      {
+        "name": "list_products",
+        "title": "List perfumes",
+        "description": "List active perfumes in the ÆTHEL catalog with name, slug, notes, and price.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Maximum number of products to return (default 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_product",
+        "title": "Get perfume details",
+        "description": "Fetch a single perfume by its slug, including notes and price.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Product slug, e.g. 'nocturne-01'."
+            }
+          },
+          "required": [
+            "slug"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_orders",
+        "title": "List my orders",
+        "description": "List the signed-in user's ÆTHEL orders with items and totals.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_product_reviews",
+        "title": "List product reviews",
+        "description": "List approved reviews for a perfume by slug.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Product slug."
+            }
+          },
+          "required": [
+            "slug"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "submit_review",
+        "title": "Submit a review",
+        "description": "Submit or update the signed-in user's review of a perfume. Reviews enter moderation before appearing publicly.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Product slug."
+            },
+            "rating": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Star rating from 1 to 5."
+            },
+            "title": {
+              "description": "Optional review title.",
+              "type": "string",
+              "maxLength": 120
+            },
+            "body": {
+              "description": "Optional review body.",
+              "type": "string",
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "slug",
+            "rating"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
