@@ -140,13 +140,11 @@ export const deleteMyReview = createServerFn({ method: "POST" })
 
 // --- Moderation ---
 
-type SupaCtx = { supabase: { rpc: (...args: unknown[]) => unknown } };
-
-async function assertModerator(context: SupaCtx, userId: string) {
-  const rpc = context.supabase.rpc as unknown as (
-    fn: "is_moderator",
-    args: { _user_id: string },
-  ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
+async function assertModerator(
+  context: { supabase: unknown },
+  userId: string,
+) {
+  const rpc = (context.supabase as { rpc: (fn: "is_moderator", args: { _user_id: string }) => Promise<{ data: boolean | null; error: { message: string } | null }> }).rpc;
   const { data, error } = await rpc("is_moderator", { _user_id: userId });
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden: moderator role required");
