@@ -2,6 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type ShippingAddress = {
+  fullName: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  region?: string;
+  postalCode: string;
+  country: string;
+  phone?: string;
+};
+
 export type OrderItemView = {
   id: string;
   product_id: string;
@@ -18,8 +29,20 @@ export type OrderView = {
   total_cents: number;
   currency: string;
   created_at: string;
+  shipping_address: ShippingAddress | null;
   items: OrderItemView[];
 };
+
+const shippingSchema = z.object({
+  fullName: z.string().min(2).max(120),
+  line1: z.string().min(2).max(200),
+  line2: z.string().max(200).optional(),
+  city: z.string().min(1).max(100),
+  region: z.string().max(100).optional(),
+  postalCode: z.string().min(2).max(20),
+  country: z.string().min(2).max(60),
+  phone: z.string().max(30).optional(),
+});
 
 const placeOrderInput = z.object({
   items: z
@@ -31,6 +54,7 @@ const placeOrderInput = z.object({
     )
     .min(1)
     .max(20),
+  shipping: shippingSchema,
 });
 
 export const placeOrder = createServerFn({ method: "POST" })
@@ -76,6 +100,7 @@ export const placeOrder = createServerFn({ method: "POST" })
         total_cents: total,
         currency,
         customer_email: context.claims?.email ?? null,
+        shipping_address: data.shipping,
       })
       .select("id")
       .single();
@@ -98,7 +123,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<OrderView[]> => {
     const { data: orders, error } = await context.supabase
       .from("orders")
-      .select("id, status, total_cents, currency, created_at")
+      .select("id, status, total_cents, currency, created_at, shipping_address")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
@@ -115,18 +140,19 @@ export const getMyOrders = createServerFn({ method: "GET" })
 
     const byOrder = new Map<string, OrderItemView[]>();
     for (const it of items ?? []) {
-      const list = byOrder.get(it.order_id as string) ?? [];
-      const p = (it as unknown as { products: { name: string; slug: string; image_url: string | null } | null }).products;
-      list.push({
+      const prod = (it as { products: { name: string; slug: string; image_url: string | null } | null }).products;
+      const row: OrderItemView = {
         id: it.id as string,
         product_id: it.product_id as string,
-        product_name: p?.name ?? "Product",
-        product_slug: p?.slug ?? "",
-        product_image: p?.image_url ?? null,
+        product_name: prod?.name ?? "Item",
+        product_slug: prod?.slug ?? "",
+        product_image: prod?.image_url ?? null,
         quantity: it.quantity as number,
         unit_price_cents: it.unit_price_cents as number,
-      });
-      byOrder.set(it.order_id as string, list);
+      };
+      const arr = byOrder.get(it.order_id as string) ?? [];
+      arr.push(row);
+      byOrder.set(it.order_id as string, arr);
     }
 
     return orders.map((o) => ({
@@ -135,6 +161,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
       total_cents: o.total_cents as number,
       currency: o.currency as string,
       created_at: o.created_at as string,
+      shipping_address: (o.shipping_address as ShippingAddress | null) ?? null,
       items: byOrder.get(o.id as string) ?? [],
     }));
   });

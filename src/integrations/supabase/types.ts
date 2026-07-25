@@ -62,6 +62,7 @@ export type Database = {
           currency: string
           customer_email: string | null
           id: string
+          shipping_address: Json | null
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
@@ -74,6 +75,7 @@ export type Database = {
           currency?: string
           customer_email?: string | null
           id?: string
+          shipping_address?: Json | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           currency?: string
           customer_email?: string | null
           id?: string
+          shipping_address?: Json | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -98,53 +101,71 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          base_notes: string[] | null
+          concentration: string | null
           created_at: string
           currency: string
           description: string | null
+          heart_notes: string[] | null
           house: string | null
           id: string
           image_url: string | null
+          longevity: number | null
           name: string
           notes: string | null
           price_cents: number
+          sillage: number | null
           slug: string
           sort: number
           stripe_price_id: string | null
           stripe_product_id: string | null
+          top_notes: string[] | null
           updated_at: string
         }
         Insert: {
           active?: boolean
+          base_notes?: string[] | null
+          concentration?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          heart_notes?: string[] | null
           house?: string | null
           id?: string
           image_url?: string | null
+          longevity?: number | null
           name: string
           notes?: string | null
           price_cents: number
+          sillage?: number | null
           slug: string
           sort?: number
           stripe_price_id?: string | null
           stripe_product_id?: string | null
+          top_notes?: string[] | null
           updated_at?: string
         }
         Update: {
           active?: boolean
+          base_notes?: string[] | null
+          concentration?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          heart_notes?: string[] | null
           house?: string | null
           id?: string
           image_url?: string | null
+          longevity?: number | null
           name?: string
           notes?: string | null
           price_cents?: number
+          sillage?: number | null
           slug?: string
           sort?: number
           stripe_price_id?: string | null
           stripe_product_id?: string | null
+          top_notes?: string[] | null
           updated_at?: string
         }
         Relationships: []

@@ -12,7 +12,16 @@ export type Product = {
   currency: string;
   image_url: string | null;
   sort: number;
+  top_notes: string[] | null;
+  heart_notes: string[] | null;
+  base_notes: string[] | null;
+  longevity: number | null;
+  sillage: number | null;
+  concentration: string | null;
 };
+
+const SELECT =
+  "id, slug, name, house, notes, description, price_cents, currency, image_url, sort, top_notes, heart_notes, base_notes, longevity, sillage, concentration";
 
 async function publicClient() {
   const { createClient } = await import("@supabase/supabase-js");
@@ -38,9 +47,7 @@ export const listProducts = createServerFn({ method: "GET" }).handler(
     const supabase = await publicClient();
     const { data, error } = await supabase
       .from("products")
-      .select(
-        "id, slug, name, house, notes, description, price_cents, currency, image_url, sort",
-      )
+      .select(SELECT)
       .eq("active", true)
       .order("sort", { ascending: true });
     if (error) throw new Error(error.message);
@@ -56,9 +63,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
     const supabase = await publicClient();
     const { data: rows, error } = await supabase
       .from("products")
-      .select(
-        "id, slug, name, house, notes, description, price_cents, currency, image_url, sort",
-      )
+      .select(SELECT)
       .eq("slug", data.slug)
       .eq("active", true)
       .maybeSingle();
@@ -75,9 +80,7 @@ export const getProductsByIds = createServerFn({ method: "POST" })
     const supabase = await publicClient();
     const { data: rows, error } = await supabase
       .from("products")
-      .select(
-        "id, slug, name, house, notes, description, price_cents, currency, image_url, sort",
-      )
+      .select(SELECT)
       .in("id", data.ids);
     if (error) throw new Error(error.message);
     return (rows ?? []) as Product[];
