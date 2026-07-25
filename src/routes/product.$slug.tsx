@@ -126,13 +126,12 @@ function ProductPage() {
               className="preserve-3d relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-border shadow-[0_50px_120px_-30px_rgba(0,0,0,0.9)] transition-transform duration-300 ease-out"
               style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}
             >
-              {product.image_url && (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="h-full w-full object-cover animate-float-3d"
-                />
-              )}
+              <img
+                src={product.image_url || imageForSlug(product.slug)}
+                alt={product.name}
+                className="h-full w-full object-cover animate-float-3d"
+              />
+
               <div
                 aria-hidden
                 className="absolute inset-0"
