@@ -9,7 +9,7 @@ import {
   deleteMyReview,
   getMyReviewForProduct,
 } from "@/lib/reviews.functions";
-import { useCart, formatPrice } from "@/lib/cart";
+import { useCart, formatPrice, formatDualPrice } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { imageForSlug } from "@/lib/product-images";
