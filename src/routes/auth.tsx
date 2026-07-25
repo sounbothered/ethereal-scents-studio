@@ -6,7 +6,13 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import heroImg from "@/assets/perfume-hero.jpg";
 
+function sanitizeNext(raw: unknown): string | undefined {
+  if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) return undefined;
+  return raw;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({ next: sanitizeNext(s.next) }),
   head: () => ({
     meta: [
       { title: "Sign in · ÆTHEL" },
@@ -20,6 +26,7 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
 });
+
 
 const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z
