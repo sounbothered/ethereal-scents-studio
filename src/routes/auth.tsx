@@ -36,17 +36,25 @@ const passwordSchema = z
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
+  const goNext = () => {
+    if (next) window.location.replace(next);
+    else navigate({ to: "/", replace: true });
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/", replace: true });
+      if (data.session) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const onMove = (e: React.MouseEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
