@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getProductsByIds } from "@/lib/catalog.functions";
 import { placeOrder } from "@/lib/orders.functions";
-import { useCart, formatPrice } from "@/lib/cart";
+import { useCart, formatPrice, formatNgn, formatDualLineTotal, sumBagTotals } from "@/lib/cart";
 import { AppShell } from "@/components/AppShell";
 
 const productsQO = (ids: string[]) =>
