@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
+import { isCurrentUserModerator } from "@/lib/reviews.functions";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -17,6 +19,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  const { data: modInfo } = useQuery({
+    queryKey: ["is-moderator", userEmail],
+    queryFn: () => isCurrentUserModerator(),
+    enabled: !!userEmail,
+    staleTime: 60_000,
+  });
+  const isModerator = modInfo?.isModerator ?? false;
 
   const signOut = async () => {
     await supabase.auth.signOut();
