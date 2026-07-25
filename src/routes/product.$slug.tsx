@@ -221,7 +221,12 @@ function ReviewsSection({
   userId: string | null;
 }) {
   const qc = useQueryClient();
-  const myReview = userId ? reviews.find((r) => r.user_id === userId) : undefined;
+  const { data: myReview } = useQuery({
+    queryKey: ["my-review", productId, userId],
+    queryFn: () =>
+      userId ? getMyReviewForProduct({ data: { productId } }) : Promise.resolve(null),
+    enabled: !!userId,
+  });
   const [rating, setRating] = useState(myReview?.rating ?? 5);
   const [title, setTitle] = useState(myReview?.title ?? "");
   const [body, setBody] = useState(myReview?.body ?? "");
